@@ -3,10 +3,7 @@ import random
 
 import numpy as np
 from PIL import Image, ImageOps
-from sklearn.base import (
-    BaseEstimator,
-    TransformerMixin,
-)
+from sklearn.base import BaseEstimator, TransformerMixin
 
 
 class ImageLoaderAugmentor(BaseEstimator, TransformerMixin):
