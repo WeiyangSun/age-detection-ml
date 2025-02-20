@@ -3,7 +3,7 @@ pandas==1.5.3
 numpy==1.26.0
 
 # Machine Learning and pipelines
-scikit-learn==1.2.2
+scikit-learn==1.4.2
 
 # Image processing
 Pillow==9.5.0
@@ -19,4 +19,4 @@ Flask==2.2.2
 flask-cors==3.0.10
 
 # Keras wrapper to integrate with scikit-learn
-scikeras==0.10.0
+scikeras==0.13.0

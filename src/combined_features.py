@@ -10,7 +10,7 @@ class CombinedFeatures(BaseEstimator, TransformerMixin):
     single feature set.
     """
 
-    def __init__(self, image_dir, target_size=(64, 64), augment=False, pca_components=50):
+    def __init__(self, image_dir, target_size=(224, 224), augment=False, pca_components=50):
         self.image_dir = image_dir
         self.target_size = target_size
         self.augment = augment
