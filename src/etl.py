@@ -12,7 +12,7 @@ class ImageLoaderAugmentor(BaseEstimator, TransformerMixin):
     optionally perform data augmentation.
     """
 
-    def __init__(self, image_dir, target_size=(64, 64), augment=False):
+    def __init__(self, image_dir, target_size=(224, 224), augment=False):
         self.image_dir = image_dir
         self.target_size = target_size
         self.augment = augment
