@@ -64,63 +64,66 @@ def build_nn_model(input_shape, units=128, dropout_rate=0.2, learning_rate=0.001
 
     return model
 
+def run_pipeline():
+    data = pd.read_csv("../data/images/age_detection.csv")
 
-data = pd.read_csv("../data/images/age_detection.csv")
+    train_data = data[data["split"] == "train"]
+    X_train = train_data["file"]
+    y_train = train_data["age"]
 
-train_data = data[data["split"] == "train"]
-X_train = train_data["file"]
-y_train = train_data["age"]
+    test_data = data[data["split"] == "test"]
+    X_test = test_data["file"]
+    y_test = test_data["age"]
 
-test_data = data[data["split"] == "test"]
-X_test = test_data["file"]
-y_test = test_data["age"]
+    # Encoding age group labels as integers
+    label_encoder = LabelEncoder()
+    y_train_encoded = label_encoder.fit_transform(y_train)
+    y_test_encoded = label_encoder.transform(y_test)
+    y_train_encoded = y_train_encoded.astype("int32")
+    y_test_encoded = y_test_encoded.astype("int32")
 
-# Encoding age group labels as integers
-label_encoder = LabelEncoder()
-y_train_encoded = label_encoder.fit_transform(y_train)
-y_test_encoded = label_encoder.transform(y_test)
-y_train_encoded = y_train_encoded.astype("int32")
-y_test_encoded = y_test_encoded.astype("int32")
+    combined_features = CombinedFeatures(
+        image_dir="../data/images", target_size=(224, 224), augment=True, pca_components=50
+    )
 
-combined_features = CombinedFeatures(
-    image_dir="../data/images", target_size=(224, 224), augment=True, pca_components=50
-)
+    feature_sample = combined_features.fit_transform(X_train)
+    print("Combined feature sample shape:", feature_sample.shape)
+    input_shape = feature_sample.shape[1:]
 
-feature_sample = combined_features.fit_transform(X_train)
-print("Combined feature sample shape:", feature_sample.shape)
-input_shape = feature_sample.shape[1:]
+    nn_classifier = KerasClassifier(
+        model=build_nn_model,
+        model__input_shape=input_shape,
+        units=128,
+        dropout_rate=0.2,
+        learning_rate=0.001,
+        epochs=20,
+        batch_size=5,
+        verbose=1,
+    )
 
-nn_classifier = KerasClassifier(
-    model=build_nn_model,
-    model__input_shape=input_shape,
-    units=128,
-    dropout_rate=0.2,
-    learning_rate=0.001,
-    epochs=20,
-    batch_size=5,
-    verbose=1,
-)
+    pipeline = Pipeline([("features", combined_features), ("nn", nn_classifier)])
 
-pipeline = Pipeline([("features", combined_features), ("nn", nn_classifier)])
+    # For Hyperparameter Tuning
+    param_grid = {
+        "features__pca_components": [80, 100],
+        "nn__units": [64],
+        "nn__learning_rate": [0.001, 0.0001],
+        "nn__dropout_rate": [0.2, 0.3],
+    }
 
-# For Hyperparameter Tuning
-param_grid = {
-    "features__pca_components": [80, 100],
-    "nn__units": [64],
-    "nn__learning_rate": [0.001, 0.0001],
-    "nn__dropout_rate": [0.2, 0.3],
-}
+    skf = StratifiedKFold(n_splits=2, shuffle=True, random_state=42)
 
-skf = StratifiedKFold(n_splits=2, shuffle=True, random_state=42)
+    grid_search = GridSearchCV(
+        pipeline, param_grid, cv=skf, scoring="accuracy", verbose=2, error_score="raise"
+    )
+    grid_search.fit(X_train, y_train_encoded)
 
-grid_search = GridSearchCV(
-    pipeline, param_grid, cv=skf, scoring="accuracy", verbose=2, error_score="raise"
-)
-grid_search.fit(X_train, y_train_encoded)
+    print("Best Parameters Found:")
+    print(grid_search.best_params_)
 
-print("Best Parameters Found:")
-print(grid_search.best_params_)
+    # Evaluating on Validation Set
+    test_score = round(grid_search.score(X_test, y_test_encoded), 2)
+    print(f"Test Set Accuracy is: {test_score}")
 
-# Evaluating on Validation Set
-test_score = round(grid_search.score(X_test, y_test_encoded), 2)
-print(f"Test Set Accuracy is: {test_score}")
+if __name__ == "__main__":
+    run_pipeline()
