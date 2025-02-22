@@ -15,8 +15,11 @@ tensorflow==2.18.0
 joblib==1.2.0
 
 # Backend web framework
-Flask==2.2.2
+Flask==2.1.3
 flask-cors==3.0.10
+
+# Werkzeug version compatible with your Flask version
+Werkzeug==2.1.2
 
 # Keras wrapper to integrate with scikit-learn
 scikeras==0.13.0
