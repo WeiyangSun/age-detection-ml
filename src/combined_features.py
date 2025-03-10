@@ -1,5 +1,10 @@
+import os
+
+import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.pipeline import FeatureUnion, Pipeline
+from tensorflow.keras.preprocessing import image as keras_image
+
 from etl import ImageLoaderAugmentor
 from feature_engineering import PCAFeatureExtractor, CNNFeatureExtractor
 
@@ -59,3 +64,31 @@ class CombinedFeatures(BaseEstimator, TransformerMixin):
 
     def transform(self, X, y=None):
         return self.union.transform(X)
+
+
+class EfficientNetB3Features(BaseEstimator, TransformerMixin):
+    """
+    Used for EfficientNetB3 - Transformer that loads images from file paths and returns them as NumPy arrays.
+    """
+
+    def __init__(self, image_dir, target_size=(224, 224)):
+        self.image_dir = image_dir
+        self.target_size = target_size
+
+    def fit(self, X, y=None):
+        return self
+
+    def transform(self, X, y=None):
+        images = []
+        for rel_path in X:
+            # Build the full path to the image
+            full_path = os.path.join(self.image_dir, str(rel_path))
+            try:
+                # Load the image with the target size (returns a PIL image)
+                img = keras_image.load_img(full_path, target_size=self.target_size)
+            except Exception as e:
+                raise FileNotFoundError(f"Could not load image at {full_path}: {e}")
+            # Convert the image to a NumPy array with shape (target_size[0], target_size[1], 3)
+            img_array = keras_image.img_to_array(img)
+            images.append(img_array)
+        return np.array(images)
