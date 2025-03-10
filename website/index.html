@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Age Detection ML Project</title>
+        <link rel="stylesheet" type="text/css" href="styles.css">
+    </head>
+    <body>
+        <header>
+            <h1>Age Detection ML Project</h1>
+            <p>Upload an image or use your webcam to get an age prediction.</p>
+        </header>
+
+        <section id="upload-section">
+            <h2>Upload an Image</h2>
+            <input type="file" id="uploadInput" accept="image/*">
+            <button onclick="uploadImage()">Predict Age</button>
+        </section>
+
+        <section id="webcam-section">
+            <h2>Use Webcam</h2>
+            <video id="video" width="320" height="240" autoplay></video>
+            <br>
+            <button onclick="captureAndPredict()">Capture & Predict Age</button>
+            <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
+        </section>
+
+        <section id="result-section">
+            <h2>Prediction Results</h2>
+            <p id="result">Awaiting Prediction...</p>
+        </section>
+
+        <footer>
+            <p>View the full project on <a href="https://github.com/WeiyangSun/age-detection-ml">GitLab</a>.</p>
+        </footer>
+
+        <script>
+            // Initializing Webcam Stream
+            const video = document.getElementById('video');
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({video: true})
+                .then(stream => {
+                    video.srcObject = stream;
+                    video.play();
+                })
+                .catch(error => console.error("Webcam Error:", error));
+            }
+
+            // Send Image to Backend for Prediction
+            function sendImageForPrediction(imageFile) {
+                const formData = new FormData();
+                formData.append('file', imageFile);
+
+                const backendUrl = "http://127.0.0.1:5000/predict";
+
+                fetch(backendUrl, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('result').innerText = "Predicted Age Group: " + data.prediction;
+                })
+                .catch(error => {
+                    console.error('Error: ', error);
+                    document.getElementById('result').innerText = "Prediction Error: " + error;
+                });
+            }
+
+            // Uploading Image File for Prediction
+            function uploadImage() {
+                const input = document.getElementById('uploadInput');
+                if (input.files.length == 0) {
+                    alert("Please select an image file.");
+                    return;
+                }
+                const file = input.files[0];
+                sendImageForPrediction(file);
+            }
+
+            // Capture Image from Webcam
+            function captureAndPredict() {
+                const canvas = document.getElementById('canvas');
+                const context = canvas.getContext('2d');
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                canvas.toBlob(blob => {
+                    sendImageForPrediction(blob);
+                }, 'image/jpeg');
+            }
+        </script>
+    </body>
+</html>

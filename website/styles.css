@@ -1,0 +1,44 @@
+/* styles.css */
+body {
+    font-family: Arial, sans-serif;
+    margin: 40px;
+    background: #f8f9fa;
+}
+
+header, section, footer {
+    margin-bottom: 30px;
+}
+
+header h1 {
+    color: #333;
+}
+
+section {
+    padding: 10px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+h2 {
+    color: #555;
+}
+
+#result {
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 1em;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+button:hover{
+    background-color: #0056b3;
+}
